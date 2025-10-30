@@ -1,0 +1,22 @@
+# Ignore environment files
+/env/*.env
+
+# Keep README files in env folder
+!/env/README.md
+
+# Optional: ignore common temp / build artifacts
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Python / Ansible temp files (nếu có)
+__pycache__/
+*.retry
+
+# Node modules or other heavy dirs (future-proof)
+node_modules/
+
+./idea/
+/.vscode/
+/.vscode/*.json

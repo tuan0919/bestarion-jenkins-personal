@@ -1,0 +1,35 @@
+jobs:
+  - script: |
+      freeStyleJob('seed-job') {
+        description('Seed job quản lý các Jenkins jobs bằng Job DSL')
+        label('built-in')
+
+        scm {
+          git {
+            remote {
+              url('https://github.com/minhhieu16/bestarion-jenkins.git')
+              credentials('github-key')
+            }
+            branch('test/jenkins-pipeline')
+          }
+        }
+
+        steps {
+          dsl {
+            external('jenkins_home/casc/jobs/dsl/**/*.groovy')
+            removeAction('DELETE')
+          }
+        }
+
+        logRotator {
+          numToKeep(10)
+        }
+
+        properties {
+          disableConcurrentBuilds()
+        }
+
+        triggers {
+          scm('H/1 * * * *')
+        }
+      }

@@ -1,0 +1,15 @@
+- hosts: jenkins_masters
+  become: yes
+  vars_files:
+    - inventory/group_vars/vault.yaml
+    - inventory/group_vars/all.yaml
+  roles:
+    - master
+
+- hosts: jenkins_agents
+  become: yes
+  vars_files:
+    - inventory/group_vars/vault.yaml
+    - inventory/group_vars/all.yaml
+  roles:
+    - agent

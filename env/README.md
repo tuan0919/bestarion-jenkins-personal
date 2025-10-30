@@ -1,0 +1,1 @@
+## This folder will hold secret credentials which shouldn't be pushed to remote repository

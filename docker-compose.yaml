@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  jenkins-agent:
+    build: 
+      context: .
+      dockerfile: agent.Dockerfile
+    container_name: jenkins-agent
+    depends_on:
+      - jenkins-server
+    env_file:
+      - ./env/secret.env
+
+  jenkins-server:
+    container_name: jenkins-server
+    build: 
+      context: .
+      dockerfile: jenkins.Dockerfile
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    ports:
+      - "8181:8080"
+    env_file:
+      - ./env/secret.env
+
+volumes:
+  jenkins_home:

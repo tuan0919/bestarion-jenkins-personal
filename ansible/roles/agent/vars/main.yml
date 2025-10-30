@@ -1,0 +1,9 @@
+---
+# vars file for agent
+env_file_path: /etc/default/jenkins.env
+api_url: http://{{ jenkins_master_host }}:{{ jenkins_master_port }}
+api_uname: "{{ vault_env.API_UNAME }}"
+api_passwd: "{{ vault_env.API_PASSWD }}"
+agent_name: "{{ vault_env.JENKINS_AGENT_NAME }}"
+agent_home: "{{ vault_env.JENKINS_AGENT_HOME_DIRECTORY }}"
+agent_jar_path: "{{ agent_home }}/agent.jar"

@@ -1,0 +1,3 @@
+jenkins_master_host: "{{ hostvars['master01'].ansible_host }}"
+jenkins_master_port: 8080
+jenkins_agent_host: "{{ hostvars['agent01'].ansible_host }}"

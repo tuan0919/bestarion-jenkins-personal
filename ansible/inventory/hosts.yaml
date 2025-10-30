@@ -1,0 +1,15 @@
+all:
+  children:
+    jenkins_agents:
+      hosts:
+        agent01:
+          ansible_host: 192.168.122.75
+          ansible_user: jenkins-agent
+          ansible_ssh_private_key_file: ~/ansible-ssh-key
+        
+    jenkins_masters:
+      hosts:
+        master01:
+          ansible_host: 192.168.122.33
+          ansible_user: jenkins-master
+          ansible_ssh_private_key_file: ~/ansible-ssh-key
