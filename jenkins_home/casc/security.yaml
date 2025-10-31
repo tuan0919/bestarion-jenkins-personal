@@ -9,3 +9,5 @@ security:
     port: -1
   scriptApproval:
     forceSandbox: false
+  globalJobDslSecurityConfiguration:
+      useScriptSecurity: false

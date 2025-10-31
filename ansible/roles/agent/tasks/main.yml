@@ -27,6 +27,12 @@
     sed -n 's/.*<application-desc><argument>\([a-z0-9]*\).*/\1/p' > /tmp/agent_secret_token.txt
   changed_when: true
 
+- name: Ensure agent home directory exists
+  ansible.builtin.file:
+    path: "{{ agent_home }}"
+    state: directory
+    mode: '0755'
+
 - name: Create agent startup script
   ansible.builtin.copy:
     dest: "{{ agent_home }}/start-agent.sh"

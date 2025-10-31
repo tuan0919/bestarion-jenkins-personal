@@ -12,21 +12,21 @@
   ansible.builtin.apt:
     update_cache: yes
 
-- name: Check if java 21 is Installed
+- name: Check if java is Installed
   ansible.builtin.shell: |
-    java -version | head -n 1 | cut -d " " -f 2
+    java -version
   register: java_check
   ignore_errors: yes
 
 - ansible.builtin.set_fact:
     need_java: true
-  when: java_check.rc != 0 or ('21.0.8' not in java_check.stdout)
+  when: java_check.rc != 0
 
 - name: Download openjdk-21-jre package
   ansible.builtin.get_url:
     url: "{{ jdk21_deb_download_url }}"
     dest: /tmp/jdk-21_linux-x64_bin.deb
-  when: need_java
+  when: need_java is defined and need_java
 
 - name: Check if Jenkins is Installed
   ansible.builtin.shell: |
@@ -36,13 +36,13 @@
 
 - ansible.builtin.set_fact:
     need_jenkins: true
-  when: jenkins_check.rc != 0 or ('2.528' not in jenkins_check.stdout)
+  when: jenkins_check.rc != 0
 
 - name: Download specific Jenkins version
   ansible.builtin.get_url:
     url: "{{ jenkins2_528_deb_download_url }}"
     dest: /tmp/jenkins_2.528_all.deb
-  when: need_jenkins
+  when: need_jenkins is defined and need_jenkins
 
 - name: Install net-tools dependency
   ansible.builtin.apt:
@@ -52,9 +52,7 @@
 - name: Install downloaded packages with dpkg
   ansible.builtin.command:
     cmd: dpkg -i /tmp/jdk-21_linux-x64_bin.deb /tmp/jenkins_2.528_all.deb
-  when: >
-    (jenkins_check.rc != 0 or ('2.528' not in jenkins_check.stdout)) or
-    (java_check.rc != 0 or ('21.0.8' not in java_check.stdout))
+  when: (need_java | default(false)) or (need_jenkins | default(false))
 
 - name: Fix broken dependencies with apt-get
   ansible.builtin.apt:
@@ -70,7 +68,6 @@
     url: "{{ plugin_manager.download_url }}"
     dest: "{{ plugin_manager.file_path }}"
     mode: 0755
-  register: pim_dl
   
 - name: Put jenkins plugins file
   ansible.builtin.copy:
@@ -94,7 +91,7 @@
       - "{{ jenkins.plugins_dir }}"
       - --verbose
   register: pim_run
-  changed_when: "'No new plugins to install' not in pim_run.stdout"
+  changed_when: true
 
 - name: Ensure casc directory exists
   ansible.builtin.file:
