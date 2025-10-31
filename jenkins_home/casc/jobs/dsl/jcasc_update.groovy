@@ -5,7 +5,7 @@ pipelineJob('casc-pipeline') {
             scm {
                 git {
                     remote {
-                        url('https://github.com/minhhieu16/bestarion-jenkins.git')
+                        url('https://github.com/tuan0919/bestarion-jenkins-personal.git')
                         credentials('github-key')
                     }
                     branch('test/jenkins-pipeline')
@@ -15,7 +15,7 @@ pipelineJob('casc-pipeline') {
         }
     }
     triggers {
-        scm('H/1 * * * *')
+        gitHubPush()
     }
     properties {
         disableConcurrentBuilds()
