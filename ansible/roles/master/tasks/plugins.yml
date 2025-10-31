@@ -42,7 +42,7 @@
     - name: Sync CasC folder with casc folder in Jenkins home
       ansible.posix.synchronize:
         src: "{{ starter_casc_folder_path }}"
-        dest: "{{ jenkins.casc_dir }}"
+        dest: "{{ jenkins.home_dir }}"
         recursive: yes
         delete: yes
         mode: push
