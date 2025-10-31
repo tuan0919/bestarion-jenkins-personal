@@ -1,0 +1,78 @@
+---
+- name: Check if Jenkins is installed
+  ansible.builtin.shell: jenkins --version
+  register: jenkins_check
+  ignore_errors: yes
+
+- name: Set need_jenkins fact
+  ansible.builtin.set_fact:
+    need_jenkins: true
+  when: jenkins_check.rc != 0
+
+# Install----------------------------------
+- block:
+    - name: Download Jenkins package
+      ansible.builtin.get_url:
+        url: "{{ jenkins2_528_deb_download_url }}"
+        dest: /tmp/jenkins_2.528_all.deb
+
+    - name: Install Jenkins package
+      ansible.builtin.apt:
+        deb: /tmp/jenkins_2.528_all.deb
+    
+    - name: Create Jenkins service override directory
+      ansible.builtin.file:
+        path: "{{ jenkins.service_dir }}"
+        state: directory
+        mode: '0755'
+    
+    - name: Create Jenkins environment file
+      ansible.builtin.template:
+        src: environment.j2
+        dest: "{{ env_file_path }}"
+        mode: '0644'
+      notify: 
+        - Reload systemd
+        - Restart Jenkins
+    
+    - name: Create Jenkins override file for systemd
+      ansible.builtin.template:
+        src: jenkins-override.conf.j2
+        dest: "{{ jenkins.service_dir }}/override.conf"
+        mode: '0644'
+      notify: 
+        - Reload Systemd Daemon
+        - Restart Jenkins
+
+  when: 
+    - action | default('') == 'install' or action is not defined
+    - need_jenkins | default(false)
+
+# Rollback---------------------------------
+- block:
+    - name: Remove Jenkins package
+      ansible.builtin.apt:
+        name: jenkins
+        state: absent
+        purge: true
+
+    - name: Autoremove unused dependencies
+      ansible.builtin.apt:
+        autoremove: yes
+        purge: yes
+
+    - name: Remove Jenkins service override directory
+      ansible.builtin.file:
+        path: "{{ jenkins.service_dir }}"
+        state: absent
+        recurse: yes
+        force: yes
+
+    - name: Remove Jenkins environment file
+      ansible.builtin.file:
+        path: "{{ env_file_path }}"
+        state: absent
+
+  when: 
+    - action | default('') == 'rollback'
+    - not need_jenkins | default(false)

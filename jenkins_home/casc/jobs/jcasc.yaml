@@ -10,7 +10,7 @@ jobs:
               url('https://github.com/tuan0919/bestarion-jenkins-personal.git')
               credentials('github-key')
             }
-            branch('test/jenkins-pipeline')
+            branch('main')
           }
         }
 
@@ -30,6 +30,6 @@ jobs:
         }
 
         triggers {
-          gitHubPush()
+          githubPush()
         }
       }

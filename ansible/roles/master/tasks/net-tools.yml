@@ -1,0 +1,41 @@
+---
+- name: Check if net-tools is installed
+  ansible.builtin.shell: dpkg -l | grep net-tools
+  register: nettools_pkg
+  ignore_errors: yes
+
+- name: Set need_nettools fact
+  ansible.builtin.set_fact:
+    need_nettools: true
+  when: nettools_pkg.rc != 0
+
+# Install----------------------------------
+- block:
+    - name: Download net-tools package
+      ansible.builtin.get_url:
+        url: "{{ net_tools2_10_deb_download_url }}"
+        dest: /tmp/net-tools_2_10.deb
+
+    - name: Install net-tools package
+      ansible.builtin.apt:
+        deb: /tmp/net-tools_2_10.deb
+
+  when: 
+    - action | default('') == 'install' or action is not defined
+    - need_nettools | default(false)
+# Rollback---------------------------------
+- block:
+    - name: Remove net-tools package
+      ansible.builtin.apt:
+        name: net-tools
+        state: absent
+        purge: true
+
+    - name: Autoremove unused dependencies
+      ansible.builtin.apt:
+        autoremove: yes
+        purge: yes
+
+  when: 
+    - action | default('') == 'rollback'
+    - not need_nettools | default(false)

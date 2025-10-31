@@ -3,12 +3,17 @@
 jdk21_deb_download_url: https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.deb
 fontconfig_deb_download_url: http://archive.ubuntu.com/ubuntu/pool/main/f/fontconfig/fontconfig_2.13.1-4.2ubuntu5_amd64.deb
 jenkins2_528_deb_download_url: https://archives.jenkins.io/debian/jenkins_2.528_all.deb
+net_tools2_10_deb_download_url: https://cl.archive.ubuntu.com/ubuntu/ubuntu/pool/main/n/net-tools/net-tools_2.10-1.3ubuntu2_amd64.deb
+
 plugin_manager:
   download_url: https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/2.13.2/jenkins-plugin-manager-2.13.2.jar
   file_path: /usr/local/bin/jenkins-plugin-manager.jar
+
 jenkins:
+  home_dir: "{{ vault_env.JENKINS_MASTER_HOME_DIRECTORY }}"
   service_dir: /etc/systemd/system/jenkins.service.d
   casc_dir: "{{ vault_env.CASC_JENKINS_CONFIG }}"
   plugins_dir: "{{ vault_env.JENKINS_MASTER_HOME_DIRECTORY }}/plugins"
+
 env_file_path: /etc/default/jenkins.env
 starter_casc_folder_path: "{{ role_path }}/../../../jenkins_home/casc"

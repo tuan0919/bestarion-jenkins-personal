@@ -1,0 +1,54 @@
+- name: Get plugins dir stat
+  ansible.builtin.stat:
+    path: "{{ jenkins.plugins_dir }}"
+  register: plugins_dir_stat
+
+- name: Get casc dir stat
+  ansible.builtin.stat:
+    path: "{{ jenkins.casc_dir }}"
+  register: casc_dir_stat
+
+- name: Get plugins file stat
+  ansible.builtin.stat:
+    path: "{{ jenkins.home_dir }}/plugins.txt"
+  register: plugins_file_stat
+
+# Install----------------------------------
+- block:
+    - name: Download Jenkins Plugin Manager
+      ansible.builtin.get_url:
+        url: "{{ plugin_manager.download_url }}"
+        dest: "{{ plugin_manager.file_path }}"
+        mode: '0755'
+    
+    - name: Copy plugins.txt to Jenkins home
+      ansible.builtin.copy:
+        src: plugins.txt
+        dest: "{{ jenkins.home_dir }}/plugins.txt"
+        mode: '0644'
+      changed_when: >
+        (not plugins_file_stat.stat.exists) or
+        (not plugins_dir_stat.stat.exists) or
+        (plugins_file_stat.stat.checksum != (lookup('file', 'plugins.txt') | checksum))
+      notify: install-new-plugins
+
+    - name: Create casc directory
+      ansible.builtin.file:
+        path: "{{ jenkins.casc_dir }}"
+        state: directory
+        mode: '0755'
+      when: not casc_dir_stat.stat.exists
+
+    - name: Sync CasC folder with casc folder in Jenkins home
+      ansible.posix.synchronize:
+        src: "{{ starter_casc_folder_path }}"
+        dest: "{{ jenkins.casc_dir }}"
+        recursive: yes
+        delete: yes
+        mode: push
+        rsync_opts:
+          - "--checksum"
+      notify:
+        - Restart Jenkins
+  when: 
+    - action | default('') == 'install' or action is not defined

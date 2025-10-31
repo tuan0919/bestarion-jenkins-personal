@@ -1,0 +1,128 @@
+---
+# tasks file for master
+- name: Copy Jenkins environment from template
+  template:
+    src: "environment.j2"
+    dest: "{{ env_file_path }}"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Update apt repository cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Check if java is Installed
+  ansible.builtin.shell: |
+    java -version
+  register: java_check
+  ignore_errors: yes
+
+- ansible.builtin.set_fact:
+    need_java: true
+  when: java_check.rc != 0
+
+- name: Download openjdk-21-jre package
+  ansible.builtin.get_url:
+    url: "{{ jdk21_deb_download_url }}"
+    dest: /tmp/jdk-21_linux-x64_bin.deb
+  when: need_java is defined and need_java
+
+- name: Check if Jenkins is Installed
+  ansible.builtin.shell: |
+    jenkins --version
+  register: jenkins_check
+  ignore_errors: yes
+
+- ansible.builtin.set_fact:
+    need_jenkins: true
+  when: jenkins_check.rc != 0
+
+- name: Download specific Jenkins version
+  ansible.builtin.get_url:
+    url: "{{ jenkins2_528_deb_download_url }}"
+    dest: /tmp/jenkins_2.528_all.deb
+  when: need_jenkins is defined and need_jenkins
+
+- name: Install net-tools dependency
+  ansible.builtin.apt:
+    name: net-tools
+    state: present
+
+- name: Install downloaded packages with dpkg
+  ansible.builtin.command:
+    cmd: dpkg -i /tmp/jdk-21_linux-x64_bin.deb /tmp/jenkins_2.528_all.deb
+  when: (need_java | default(false)) or (need_jenkins | default(false))
+
+- name: Fix broken dependencies with apt-get
+  ansible.builtin.apt:
+    state: present
+
+- name: Ensure Jenkins service is running and enabled
+  ansible.builtin.service:
+    name: jenkins
+    state: started
+
+- name: Download Jenkins Plugin Installation Manager (jenkins-plugin-manager.jar)
+  ansible.builtin.get_url:
+    url: "{{ plugin_manager.download_url }}"
+    dest: "{{ plugin_manager.file_path }}"
+    mode: 0755
+  
+- name: Put jenkins plugins file
+  ansible.builtin.copy:
+    src: "plugins.txt"
+    dest: /tmp/jenkins_plugins.txt
+    owner: jenkins
+    group: jenkins
+    mode: 0644
+
+- name: Install plugins to $JENKINS_HOME/plugins (idempotent-ish)
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/java
+      - -jar
+      - "{{ plugin_manager.file_path }}"
+      - --plugin-file
+      - /tmp/jenkins_plugins.txt
+      - --jenkins-version
+      - 2.528.1
+      - --plugin-download-directory
+      - "{{ jenkins.plugins_dir }}"
+      - --verbose
+  register: pim_run
+  changed_when: true
+
+- name: Ensure casc directory exists
+  ansible.builtin.file:
+    path: "{{ jenkins.casc_dir }}"
+    state: directory
+    owner: jenkins
+    group: jenkins
+    mode: '0755'
+
+- name: Put jcasc configuration file
+  ansible.builtin.copy:
+    src: "{{ starter_casc_folder_path }}"
+    dest: "{{ jenkins.casc_dir }}"
+    owner: jenkins
+    group: jenkins
+    mode: 0644
+
+- name: Ensure jenkins.service.d folder exists
+  ansible.builtin.file:
+    path: "{{ jenkins.service_dir }}"
+    state: directory
+    mode: '0755'
+    
+- name: Put jenkins override file
+  ansible.builtin.copy:
+    src: "jenkins-override.conf"
+    dest: "{{ jenkins.service_dir }}/jenkins-override.conf"
+    owner: root
+    group: root
+    mode: 0644
+    force: yes
+  notify:
+    - Reload Systemd Daemon
+    - Restart Jenkins

@@ -1,0 +1,42 @@
+---
+- name: Check if Java is installed
+  ansible.builtin.shell: java -version
+  register: java_check
+  ignore_errors: yes
+
+- name: Set need_java fact
+  ansible.builtin.set_fact:
+    need_java: true
+  when: java_check.rc != 0
+
+- block:
+    - name: Download openjdk-21-jre package
+      ansible.builtin.get_url:
+        url: "{{ jdk21_deb_download_url }}"
+        dest: /tmp/jdk-21_linux-x64_bin.deb
+
+    - name: Install openjdk-21-jre package
+      ansible.builtin.apt:
+        deb: /tmp/jdk-21_linux-x64_bin.deb
+
+  when:
+    - action | default('') == 'install' or action is not defined
+    - need_java | default(false)
+
+# Rollback---------------------------------
+
+- block:
+    - name: Remove Java package
+      ansible.builtin.apt:
+        name: jdk-21
+        state: absent
+        purge: true
+
+    - name: Autoremove unused dependencies
+      ansible.builtin.apt:
+        autoremove: yes
+        purge: yes
+
+  when: 
+    - action | default('') == 'rollback'
+    - not need_java | default(false)

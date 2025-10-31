@@ -8,14 +8,14 @@ pipelineJob('casc-pipeline') {
                         url('https://github.com/tuan0919/bestarion-jenkins-personal.git')
                         credentials('github-key')
                     }
-                    branch('test/jenkins-pipeline')
+                    branch('main')
                 }
             }
             scriptPath('jenkins_home/casc/Jenkinsfile')
         }
     }
     triggers {
-        gitHubPush()
+        githubPush()
     }
     properties {
         disableConcurrentBuilds()
