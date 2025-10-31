@@ -37,6 +37,8 @@
         path: "{{ jenkins.casc_dir }}"
         state: directory
         mode: '0755'
+        owner: "jenkins"
+        group: "jenkins"
       when: not casc_dir_stat.stat.exists
 
     - name: Sync CasC folder with casc folder in Jenkins home
@@ -48,6 +50,7 @@
         mode: push
         rsync_opts:
           - "--checksum"
+          - "--chown=jenkins:jenkins"
       notify:
         - Restart Jenkins
   when: 
