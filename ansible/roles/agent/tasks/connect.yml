@@ -1,0 +1,25 @@
+---
+- name: Get agent home dir stat
+  ansible.builtin.stat:
+    path: "{{ agent_home }}"
+  register: agent_home_dir_stat
+
+- block:
+    - name: Download Jenkins agent jar file
+      ansible.builtin.get_url:
+        url: "{{ agent_download_url }}"
+        dest: "{{ agent_jar_path }}"
+        mode: '0755'
+
+    - name: Create home direcroy for agent if not exists
+      ansible.builtin.file:
+        path: "{{ agent_home }}"
+        mode: 755
+        state: directory
+    
+    - name: Get secret token
+      ansible.builtin.shell: |
+        curl -s -u "$API_UNAME:$API_PASSWD" \
+        "{{ api_url }}/computer/{{ agent_name }}/{{ agent_name }}.jnlp" | \
+        sed -n 's/.*<application-desc><argument>\([a-z0-9]*\).*/\1/p' > /tmp/agent_secret_token.txt
+      changed_when: true
