@@ -27,36 +27,39 @@
     state: started
   when: action | default('') == 'install' or action is not defined
 
-# - name: Load initial jobs by building seed job
-#   block:
-#     - name: Wait for Jenkins to be up
-#       ansible.builtin.wait_for:
-#         host: "localhost"
-#         port: 8080
-#         delay: 10
-#         timeout: 300
-#         state: started
-#       when: action | default('') == 'install' or action is not defined
+- name: Load initial jobs by building seed job
+  block:
+    - name: Wait for Jenkins to be up
+      ansible.builtin.wait_for:
+        host: "localhost"
+        port: 8080
+        delay: 10
+        timeout: 300
+        state: started
+      when: action | default('') == 'install' or action is not defined
 
-#     - name: Get crumb and cookie for calling API
-#       ansible.builtin.uri:
-#         url: "http://127.0.0.1:8080/crumbIssuer/api/json"
-#         user: "{{ lookup('env','API_UNAME')}}"
-#         password: "{{ lookup('env','API_PASSWD')}}"
-#         force_basic_auth: yes
-#       register: jenkins_crumb
-#       delegate_to: master01
+    - name: Execute script for seed job
+      ansible.builtin.shell: |
+        #!/bin/bash
+        set -e
+        source {{ env_file_path }}
+        rm -f /tmp/cookie.txt
+        CRUMB=$(curl -s -u $API_UNAME:$API_PASSWD -c /tmp/cookie.txt \
+          http://localhost:8080/crumbIssuer/api/json | jq -r '.crumb')
 
-#     - name: Trigger seed job build
-#       ansible.builtin.uri:
-#         url: "http://127.0.0.1:8080/job/seed-job/build?token={{ lookup('env','SEED_JOB_TOKEN')}}"
-#         user: "{{ lookup('env','API_UNAME')}}"
-#         password: "{{ lookup('env','API_PASSWD')}}"
-#         force_basic_auth: yes
-#         method: POST
-#         headers:
-#           "{{ jenkins_crumb.json.crumbRequestField }}": "{{ jenkins_crumb.json.crumb }}"
-#           Cookie: "{{ jenkins_crumb.cookies_string}}"
-#       delegate_to: master01
-#   when: action | default('') == 'install' or action is not defined
-#   tags: ['jobs']
+        RES=$(curl -f -u $API_UNAME:$API_PASSWD \
+          -b /tmp/cookie.txt \
+          -H "Jenkins-Crumb: $CRUMB" \
+          -H "Content-Type: text/yaml" \
+          -X POST http://localhost:8080/job/seed-job/build?token=$SEED_JOB_TOKEN 2>&1)
+
+        if [ $? -ne 0 ]; then
+          echo "Failed to trigger seed job "
+          echo "Response: $RES"
+          exit 1
+        fi
+      args:
+        executable: /bin/bash
+
+  when: action | default('') == 'install' or action is not defined
+  tags: ['jobs']

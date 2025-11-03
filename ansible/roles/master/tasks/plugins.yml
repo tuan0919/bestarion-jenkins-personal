@@ -30,7 +30,18 @@
         (not plugins_file_stat.stat.exists) or
         (not plugins_dir_stat.stat.exists) or
         (plugins_file_stat.stat.checksum != (lookup('file', 'plugins.txt') | checksum))
-      notify: install-new-plugins
+      register: copy_plugins
+
+    - name: Install Jenkins plugins using Plugin Manager
+      ansible.builtin.command: >
+        /usr/bin/java -jar {{ plugin_manager.file_path }}
+        --plugin-file {{ jenkins.home_dir }}/plugins.txt
+        --jenkins-version 2.528.1
+        --plugin-download-directory {{ jenkins.plugins_dir }}
+        --verbose
+      when: copy_plugins is changed
+      changed_when: true
+      register: install_plugins
 
     - name: Create casc directory
       ansible.builtin.file:
@@ -51,8 +62,13 @@
         rsync_opts:
           - "--checksum"
           - "--chown=jenkins:jenkins"
-      notify:
-        - Restart Jenkins
+      register: sync_casc
+
+    - name: Restart Jenkins as plugins was changed or casc folder was changed
+      ansible.builtin.systemd:
+        name: jenkins
+        state: restarted
+      when: (install_plugins is changed) or (sync_casc is changed)
 
   when: 
     - action | default('') == 'install' or action is not defined

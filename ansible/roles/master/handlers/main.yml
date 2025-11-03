@@ -9,13 +9,4 @@
 
 - name: Reload Systemd Daemon
   ansible.builtin.command:
-    cmd: systemctl daemon-reload    
-
-- name: install-new-plugins
-  ansible.builtin.command: >
-    /usr/bin/java -jar {{ plugin_manager.file_path }}
-    --plugin-file {{ jenkins.home_dir }}/plugins.txt
-    --jenkins-version 2.528.1
-    --plugin-download-directory {{ jenkins.plugins_dir }}
-    --verbose
-  notify: Restart Jenkins
+    cmd: systemctl daemon-reload
