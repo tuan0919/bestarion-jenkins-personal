@@ -13,15 +13,15 @@ pipeline {
                 set -e
 
                 echo "🔐 Getting CSRF crumb..."
-                rm -f /tmp/cookie.txt
-                CRUMB=$(curl -s -u $JENKINS_USER:$JENKINS_PASSWORD -c /tmp/cookie.txt \
+                rm -f $WORKSPACE/cookie.txt
+                CRUMB=$(curl -s -u $JENKINS_USER:$JENKINS_PASSWORD -c $WORKSPACE/cookie.txt \
                         $JENKINS_URL/crumbIssuer/api/json | jq -r '.crumb')
 
                 for file in $(find $WORKSPACE/jenkins_home/casc -type f -name '*.yaml'); do
                     echo -e "🔍 Checking: $file"
                     HTTP_CODE=$(curl -s -o /tmp/resp.txt -w "%{http_code}" \
                         -u $JENKINS_USER:$JENKINS_PASSWORD \
-                        -b /tmp/cookie.txt \
+                        -b $WORKSPACE/cookie.txt \
                         -H "Jenkins-Crumb: $CRUMB" \
                         -H "Content-Type: text/yaml" \
                         -X POST "$JENKINS_URL/configuration-as-code/check" \
