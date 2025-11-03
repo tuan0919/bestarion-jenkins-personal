@@ -32,4 +32,6 @@ jobs:
         triggers {
           githubPush()
         }
+
+        authenticationToken(System.getenv('SEED_JOB_TOKEN'))
       }

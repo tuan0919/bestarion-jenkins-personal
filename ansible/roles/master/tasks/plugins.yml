@@ -54,12 +54,5 @@
       notify:
         - Restart Jenkins
 
-    # - name: Build seed-job to ensure loading all defined jobs
-    #   ansible.builtin.copy:
-    #     dest: "{{ jenkins.home_dir }}/seed-job.sh"
-    #     content: |
-    #     # !/bin/bash
-        
-
   when: 
     - action | default('') == 'install' or action is not defined
