@@ -1,0 +1,6 @@
+agent:
+  name: "jenkins-agent"
+  home_dir: "/home/agent01"
+  jar_path: "/home/agent01/agent.jar"
+  startup_script: "/home/agent01/start-agent.sh"
+  service_name: "jenkins-agent-agent01.service"

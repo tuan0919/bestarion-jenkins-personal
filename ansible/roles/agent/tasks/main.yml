@@ -1,64 +1,7 @@
 ---
 # tasks file for agent
+- name: Include JDK 21 installation tasks
+  ansible.builtin.include_tasks: jdk21.yml
 
-- name: Copy Jenkins environment from template
-  template:
-    src: "environment.j2"
-    dest: "{{ env_file_path }}"
-    owner: root
-    group: root
-    mode: 0600
-
-- name: Install Java runtime environment
-  ansible.builtin.apt:
-    name: openjdk-21-jre
-    state: present
-
-- name: Download Jenkins agent jar
-  ansible.builtin.get_url:
-    url: "{{ api_url }}/jnlpJars/agent.jar"
-    dest: "{{ agent_jar_path }}"
-    mode: '0755'
-
-- name: Get secret token
-  ansible.builtin.shell: |
-    curl -s -u "admin:1" \
-    "{{ api_url }}/computer/{{ agent_name }}/{{ agent_name }}.jnlp" | \
-    sed -n 's/.*<application-desc><argument>\([a-z0-9]*\).*/\1/p' > /tmp/agent_secret_token.txt
-  changed_when: true
-
-- name: Ensure agent home directory exists
-  ansible.builtin.file:
-    path: "{{ agent_home }}"
-    state: directory
-    mode: '0755'
-
-- name: Create agent startup script
-  ansible.builtin.copy:
-    dest: "{{ agent_home }}/start-agent.sh"
-    mode: '0755'
-    content: |
-      #!/bin/bash
-      SECRET=$(cat /tmp/agent_secret_token.txt)
-      exec /usr/bin/java -jar {{ agent_jar_path }} -url {{ api_url }} -name "{{ agent_name }}" -secret $SECRET -webSocket -workDir {{ agent_home }} 
-  
-- name: Create systemd service to run Jenkins agent
-  ansible.builtin.copy:
-    dest: /etc/systemd/system/jenkins-agent.service
-    content: |
-      [Unit]
-      Description=Jenkins Agent Service
-      After=network.target
-
-      [Service]
-      WorkingDirectory={{ agent_home }}
-      ExecStart={{ agent_home }}/start-agent.sh
-      Restart=always
-      EnvironmentFile={{ env_file_path }}
-
-      [Install]
-      WantedBy=multi-user.target
-  changed_when: true    
-  notify:
-    - Reload Systemd Daemon
-    - Restart Jenkins Agent
+- name: Include Jenkins agent connection tasks
+  ansible.builtin.include_tasks: connect.yml

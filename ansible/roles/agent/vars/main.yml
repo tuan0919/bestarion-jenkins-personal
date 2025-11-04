@@ -4,7 +4,3 @@ env_file_path: /etc/default/jenkins.env
 jdk21_deb_download_url: https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.deb
 api_url: http://{{ jenkins_master_host }}:{{ jenkins_master_port }}
 agent_download_url: "{{api_url}}/jnlpJars/agent.jar"
-
-agent_name: "{{ vault_env.JENKINS_AGENT_NAME }}"
-agent_home: "{{ vault_env.JENKINS_AGENT_HOME_DIRECTORY }}"
-agent_jar_path: "{{ agent_home }}/agent.jar"

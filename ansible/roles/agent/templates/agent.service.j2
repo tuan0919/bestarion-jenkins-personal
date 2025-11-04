@@ -1,0 +1,15 @@
+[Unit]
+Description=Jenkins Agent Service
+After=network.target
+
+[Service]
+WorkingDirectory={{ agent.home_dir }}
+ExecStart={{ agent.startup_script }}
+Restart=always
+Environment=JAR_PATH={{ agent.jar_path }}
+Environment=API_URL={{ api_url }}
+Environment=AGENT_NAME={{ agent.name }}
+Environment=HOME_DIR={{ agent.home_dir }}
+
+[Install]
+WantedBy=multi-user.target

@@ -28,8 +28,4 @@ jobs:
         properties {
           disableConcurrentBuilds()
         }
-
-        triggers {
-          githubPush()
-        }
       }
