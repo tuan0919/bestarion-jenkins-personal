@@ -14,9 +14,9 @@ pipeline {
 
                 for file in $(find $WORKSPACE/jenkins_home/casc -type f -name '*.yaml'); do
                     echo -e "🔍 Checking: $file"
-                    cat $file | $SCRIPT \
+                    cat $file | eval("$SCRIPT" \
                         -auth $JENKINS_USER:$JENKINS_PASSWORD \
-                        check-configuration 2> /tmp/err.txt
+                        check-configuration 2> /tmp/err.txt)
                     if [ $? -ne 0 ]; then
                         echo -e "❌ Validation failed for $file"
                         echo "------ Error Details ------"
@@ -50,9 +50,9 @@ pipeline {
                     set -e
 
                     echo "Apply new JCasC Configuration"
-                        $SCRIPT \
+                        eval("$SCRIPT" \
                         -auth $JENKINS_USER:$JENKINS_PASSWORD \
-                        reload-jcasc-configuration
+                        reload-jcasc-configuration)
 
                     if [ $? -ne 0 ]; then
                         echo "❌ Failed to apply JCasC configuration"
