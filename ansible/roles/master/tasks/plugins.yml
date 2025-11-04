@@ -81,7 +81,6 @@
         JENKINS_AGENT_NAME: "{{ vault_env.JENKINS_AGENT_NAME }}"
         JENKINS_AGENT_HOME_DIRECTORY: "{{ vault_env.JENKINS_AGENT_HOME_DIRECTORY }}"
         JENKINS_MASTER_HOME_DIRECTORY: "{{ vault_env.JENKINS_MASTER_HOME_DIRECTORY }}"
-        COMMAND_SCRIPT_PATH: "{{ jenkins.cmd_script_path }}"
 
   when: 
     - action | default('') == 'install' or action is not defined

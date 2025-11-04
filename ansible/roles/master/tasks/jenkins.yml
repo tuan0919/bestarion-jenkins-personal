@@ -25,16 +25,7 @@
         path: "{{ jenkins.service_dir }}"
         state: directory
         mode: '0755'
-    
-    - name: Create Jenkins environment file
-      ansible.builtin.template:
-        src: environment.j2
-        dest: "{{ env_file_path }}"
-        mode: '0644'
-      notify: 
-        - Reload Systemd Daemon
-        - Restart Jenkins
-    
+
     - name: Create Jenkins override file for systemd
       ansible.builtin.template:
         src: jenkins-override.conf.j2
@@ -81,11 +72,6 @@
         state: absent
         recurse: yes
         force: yes
-
-    - name: Remove Jenkins environment file
-      ansible.builtin.file:
-        path: "{{ env_file_path }}"
-        state: absent
 
   when: 
     - action | default('') == 'rollback'

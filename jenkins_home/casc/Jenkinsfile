@@ -1,7 +1,6 @@
 pipeline {
     agent { label 'built-in' }
     environment {
-        WORKSPACE = "${env.JENKINS_MASTER_HOME_DIRECTORY}/workspace/casc-pipeline"
         JENKINS_CASC_DIR = "${env.CASC_JENKINS_CONFIG}"
         SCRIPT = "${env.COMMAND_SCRIPT_PATH}"
     }
