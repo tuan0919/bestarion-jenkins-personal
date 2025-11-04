@@ -1,0 +1,4 @@
+#! /bin/bash
+JENKINS_CLI_JAR="{{ jenkins.home_dir }}/jenkins-cli.jar"
+JENKINS_URL="http://localhost:8080"
+java -jar $JENKINS_CLI_JAR -s $JENKINS_URL "$@"

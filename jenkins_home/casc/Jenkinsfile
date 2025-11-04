@@ -12,25 +12,16 @@ pipeline {
                     sh '''
                 set -e
 
-                echo "🔐 Getting CSRF crumb..."
-                rm -f $WORKSPACE/cookie.txt
-                CRUMB=$(curl -s -u $JENKINS_USER:$JENKINS_PASSWORD -c $WORKSPACE/cookie.txt \
-                        $JENKINS_URL/crumbIssuer/api/json | jq -r '.crumb')
-
                 for file in $(find $WORKSPACE/jenkins_home/casc -type f -name '*.yaml'); do
                     echo -e "🔍 Checking: $file"
-                    HTTP_CODE=$(curl -s -o /tmp/resp.txt -w "%{http_code}" \
-                        -u $JENKINS_USER:$JENKINS_PASSWORD \
-                        -b $WORKSPACE/cookie.txt \
-                        -H "Jenkins-Crumb: $CRUMB" \
-                        -H "Content-Type: text/yaml" \
-                        -X POST "$JENKINS_URL/configuration-as-code/check" \
-                        -T "$file")
-
-                    if [ "$HTTP_CODE" != "200" ]; then
+                    cat $file | /usr/local/bin/jenkins-cli.jar \
+                        -s $JENKINS_URL \
+                        -auth $JENKINS_USER:$JENKINS_PASSWORD \
+                        check-configuration 2> /tmp/err.txt
+                    if [ $? -ne 0 ]; then
                         echo -e "❌ Validation failed for $file"
                         echo "------ Error Details ------"
-                        cat /tmp/resp.txt
+                        cat /tmp/err.txt
                         echo "----------------------------"
                         exit 1
                     else
@@ -60,8 +51,11 @@ pipeline {
                     set -e
 
                     echo "Apply new JCasC Configuration"
-                    curl -u $JENKINS_USER:$JENKINS_PASSWORD -X POST "$JENKINS_URL/reload-configuration-as-code/?casc-reload-token=$CASC_RELOAD_TOKEN"
-                    
+                    java -jar /usr/local/bin/jenkins-cli.jar \
+                        -s $JENKINS_URL \
+                        -auth $JENKINS_USER:$JENKINS_PASSWORD \
+                        reload-jcasc-configuration
+
                     if [ $? -ne 0 ]; then
                         echo "❌ Failed to apply JCasC configuration"
                         exit 1

@@ -26,40 +26,15 @@
     name: jenkins
     state: started
   when: action | default('') == 'install' or action is not defined
-
-- name: Load initial jobs by building seed job
-  block:
-    - name: Wait for Jenkins to be up
-      ansible.builtin.wait_for:
-        host: "localhost"
-        port: 8080
-        delay: 10
-        timeout: 300
-        state: started
-      when: action | default('') == 'install' or action is not defined
-
-    - name: Execute script for seed job
-      ansible.builtin.shell: |
-        #!/bin/bash
-        set -e
-        source {{ env_file_path }}
-        rm -f /tmp/cookie.txt
-        CRUMB=$(curl -s -u $API_UNAME:$API_PASSWD -c /tmp/cookie.txt \
-          http://localhost:8080/crumbIssuer/api/json | jq -r '.crumb')
-
-        RES=$(curl -f -u $API_UNAME:$API_PASSWD \
-          -b /tmp/cookie.txt \
-          -H "Jenkins-Crumb: $CRUMB" \
-          -H "Content-Type: text/yaml" \
-          -X POST http://localhost:8080/job/seed-job/build?token=$SEED_JOB_TOKEN 2>&1)
-
-        if [ $? -ne 0 ]; then
-          echo "Failed to trigger seed job "
-          echo "Response: $RES"
-          exit 1
-        fi
-      args:
-        executable: /bin/bash
-
-  when: action | default('') == 'install' or action is not defined
   tags: ['jobs']
+
+- name: Trigger seed job via Jenkins CLI
+  ansible.builtin.command: >
+    {{ jenkins.cmd_script_path }} -auth $API_UNAME:$API_PASSWD build seed-job -s
+  when: action | default('') == 'install' or action is not defined
+  environment:
+    API_UNAME: "{{ vault_env.API_UNAME }}"
+    API_PASSWD: "{{ vault_env.API_PASSWD }}"
+  tags: ['jobs']
+  register: trigger_seed_job
+  failed_when: trigger_seed_job.rc != 0

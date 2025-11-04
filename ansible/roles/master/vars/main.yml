@@ -14,6 +14,7 @@ jenkins:
   service_dir: /etc/systemd/system/jenkins.service.d
   casc_dir: "{{ vault_env.CASC_JENKINS_CONFIG }}"
   plugins_dir: "{{ vault_env.JENKINS_MASTER_HOME_DIRECTORY }}/plugins"
+  cmd_script_path: /usr/local/bin/jenkins-cmd.sh
 
 env_file_path: /etc/default/jenkins.env
 starter_casc_folder_path: "{{ role_path }}/../../../jenkins_home/casc"

@@ -69,6 +69,19 @@
         name: jenkins
         state: restarted
       when: (install_plugins is changed) or (sync_casc is changed)
+      environment: 
+        API_UNAME: "{{ vault_env.API_UNAME }}"
+        API_PASSWD: "{{ vault_env.API_PASSWD }}"
+        SLACK_API_TOKEN: "{{ vault_env.SLACK_API_TOKEN }}"
+        GITHUB_KEY: "{{ vault_env.GITHUB_KEY }}"
+        CASC_RELOAD_TOKEN: "{{ vault_env.CASC_RELOAD_TOKEN }}"
+        CASC_JENKINS_CONFIG: "{{ vault_env.CASC_JENKINS_CONFIG }}"
+        ADMIN_PASSWORD: "{{ vault_env.ADMIN_PASSWORD }}"
+        SYSOPS_PASSWORD: "{{ vault_env.SYSOPS_PASSWORD }}"
+        DEVELOPER_PASSWORD: "{{ vault_env.DEVELOPER_PASSWORD }}"
+        JENKINS_AGENT_NAME: "{{ vault_env.JENKINS_AGENT_NAME }}"
+        JENKINS_AGENT_HOME_DIRECTORY: "{{ vault_env.JENKINS_AGENT_HOME_DIRECTORY }}"
+        JENKINS_MASTER_HOME_DIRECTORY: "{{ vault_env.JENKINS_MASTER_HOME_DIRECTORY }}"
 
   when: 
     - action | default('') == 'install' or action is not defined

@@ -44,6 +44,20 @@
         - Reload Systemd Daemon
         - Restart Jenkins
 
+    - name: Download Jenkins CLI tool
+      ansible.builtin.get_url:
+        url: http://localhost:8080/jnlpJars/jenkins-cli.jar
+        dest: "{{ jenkins.home_dir }}/jenkins-cli.jar"
+        mode: '0744'
+        owner: "jenkins"
+        group: "jenkins"
+
+    - name: Create Jenkins CLI command script
+      ansible.builtin.template:
+        src: jenkins-cmd.sh.j2
+        dest: "{{ jenkins.cmd_script_path }}"
+        mode: '0755'
+
   when: 
     - action | default('') == 'install' or action is not defined
     - need_jenkins | default(false)

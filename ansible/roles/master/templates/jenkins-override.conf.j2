@@ -1,3 +1,4 @@
 [Service]
 Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
-EnvironmentFile=-"{{ env_file_path }}"
+Environment="CASC_RELOAD_TOKEN={{ vault_env.CASC_RELOAD_TOKEN }}"
+Environment="CASC_JENKINS_CONFIG={{ vault_env.CASC_JENKINS_CONFIG }}"
