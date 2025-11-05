@@ -1,5 +1,5 @@
 pipelineJob('casc-pipeline') {
-    description('JCasC managed pipeline for testing')
+    description('Pipeline dùng để validate và deploy cấu hình Jenkins Configuration as Code (JCasC)')
     definition {
         cpsScm {
             scm {
