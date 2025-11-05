@@ -37,11 +37,15 @@
         src: startup.sh
         dest: "{{ agent.startup_script }}"
         mode: '0755'
+      register: startup_script
 
     - name: Create systemd service to run Jenkins agent
       ansible.builtin.template:
         src: agent.service.j2
         dest: /etc/systemd/system/{{ agent.service_name }}
+      register: template_res
+      changed_when: 
+        "(startup_script.changed | default(false)) or (template_res.changed | default(false))"
       notify:
         - Reload Systemd Daemon
         - Restart Jenkins Agent

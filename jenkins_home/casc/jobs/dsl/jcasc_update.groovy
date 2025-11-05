@@ -14,9 +14,6 @@ pipelineJob('casc-pipeline') {
             scriptPath('jenkins_home/casc/Jenkinsfile')
         }
     }
-    triggers {
-        githubPush()
-    }
     properties {
         disableConcurrentBuilds()
     }
