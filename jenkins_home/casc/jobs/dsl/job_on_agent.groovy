@@ -5,10 +5,10 @@ pipelineJob('job-on-agent') {
             script("""
                 node('jenkins-agent') {
                     stage('Build') {
-                        echo 'Building on the specified agent...'
+                        sh 'hostname -I'
                     }
                     stage('Test') {
-                        echo 'Testing on the specified agent...'
+                        sh 'ps -aux'
                     }
                 }
             """.stripIndent())
