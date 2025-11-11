@@ -36,7 +36,7 @@
       ansible.builtin.command: >
         /usr/bin/java -jar {{ plugin_manager.file_path }}
         --plugin-file {{ jenkins.home_dir }}/plugins.txt
-        --jenkins-version 2.528.1
+        --jenkins-version 2.527
         --plugin-download-directory {{ jenkins.plugins_dir }}
         --verbose
       when: copy_plugins is changed
