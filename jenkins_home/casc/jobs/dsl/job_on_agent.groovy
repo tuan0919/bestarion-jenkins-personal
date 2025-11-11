@@ -5,7 +5,7 @@ pipelineJob('job-on-agent') {
             script("""
                 node('jenkins-agent') {
                     stage('Build') {
-                        ps -aux
+                        echo 'Building on the specified agent...'
                     }
                     stage('Test') {
                         echo 'Testing on the specified agent...'
